@@ -1,0 +1,100 @@
+version: "3"
+
+vars:
+  GO_MODULE: github.com/j/netlyra
+  DB_PATH: ./data/netlyra.db
+
+tasks:
+  default:
+    desc: Show available tasks
+    cmds:
+      - task --list
+
+  # === Development ===
+  dev:go:
+    desc: Run Go core service
+    deps: [build:go]
+    dir: .
+    cmds:
+      - ./bin/netlyra --iface eth0
+
+  dev:engine:
+    desc: Run Python AI engine
+    dir: engine
+    cmds:
+      - uv sync
+      - uv run python -m engine.main
+
+  dev:ui:
+    desc: Run Flutter web UI
+    dir: ui
+    cmds:
+      - fvm flutter run -d web-server --web-port 8085 --web-hostname 0.0.0.0
+
+  dev:all:
+    desc: Start all services (Go + Python + UI, parallel)
+    deps: [dev:go, dev:engine, dev:ui]
+
+  # === Database ===
+  db:sync:
+    desc: Sync GORM schema to SQLite (AutoMigrate)
+    cmds:
+      - go run ./cmd/netlyra --migrate-only
+
+  db:reset:
+    desc: Reset database (WARNING - destructive)
+    prompt: This will delete all data. Continue?
+    cmds:
+      - rm -f {{.DB_PATH}}
+      - task db:sync
+
+  # === Testing ===
+  test:api:
+    desc: Run Bruno API tests
+    dir: bruno
+    cmds:
+      - bru run --env local
+
+  test:go:
+    desc: Run Go unit tests
+    cmds:
+      - go test ./... -v
+
+  # === Build ===
+  build:go:
+    desc: Build Go binary (with packet capture capability)
+    cmds:
+      - go build -o bin/netlyra ./cmd/netlyra
+      - sudo setcap cap_net_raw+ep bin/netlyra
+      - echo "✓ Built bin/netlyra with cap_net_raw"
+
+  build:ui:
+    desc: Build Flutter web release
+    dir: ui
+    cmds:
+      - fvm flutter build web --release
+
+  build:wasm:
+    desc: Build WebAssembly module (pure Go subset)
+    cmds:
+      - GOOS=js GOARCH=wasm go build -o bin/netlyra.wasm ./wasm
+      - cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" bin/
+      - echo "✓ Built bin/netlyra.wasm + wasm_exec.js"
+
+  # === Utilities ===
+  gpu:check:
+    desc: Check VRAM usage
+    cmds:
+      - nvidia-smi --query-gpu=memory.used,memory.total --format=csv,noheader,nounits
+
+  lint:
+    desc: Run all linters
+    cmds:
+      - go vet ./...
+      - cd engine && uv run ruff check .
+
+  fmt:
+    desc: Format all code
+    cmds:
+      - go fmt ./...
+      - cd engine && uv run ruff format .

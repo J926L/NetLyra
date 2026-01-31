@@ -1,0 +1,30 @@
+[project]
+name = "netlyra-engine"
+version = "0.1.0"
+description = "NetLyra AI Engine - Streaming Anomaly Detection"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "kafka-python-ng>=2.2.3",
+    "orjson>=3.11.5",
+    "river>=0.23.0",
+]
+
+[build-system]
+requires = ["uv_build>=0.9.27,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pyright>=1.1.408",
+    "ruff>=0.14.14",
+]
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM"]
+
+[tool.pyright]
+typeCheckingMode = "basic"

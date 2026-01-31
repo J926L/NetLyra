@@ -1,0 +1,17 @@
+meta {
+  name: Get Stats
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/api/v1/stats
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+  res.body.alerts: isNumber
+  res.body.connections: isNumber
+}

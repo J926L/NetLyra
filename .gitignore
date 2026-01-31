@@ -1,0 +1,29 @@
+# Data directory - SQLite database
+data/
+
+# Go
+bin/
+netlyra
+*.exe
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.ruff_cache/
+
+# Flutter
+ui/build/
+ui/.dart_tool/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Environment
+.env
+
+# OS
+.DS_Store
+Thumbs.db
